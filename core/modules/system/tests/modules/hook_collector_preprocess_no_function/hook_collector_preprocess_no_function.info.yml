@@ -1,0 +1,10 @@
+name: 'Test Hook preprocess no function in 11.1'
+type: module
+description: 'Test exception'
+package: Testing
+# version: VERSION
+
+# Information added by Drupal.org packaging script on 2025-06-05
+version: '11.1.8'
+project: 'drupal'
+datestamp: 1749167643
