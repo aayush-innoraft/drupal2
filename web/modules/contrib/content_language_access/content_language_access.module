@@ -1,0 +1,88 @@
+<?php
+
+/**
+ * @file
+ * This module provides access checking of the current language of the site.
+ */
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Language\Language;
+use Drupal\Core\Language\LanguageInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Url;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_node_access().
+ */
+function content_language_access_node_access(NodeInterface $node, $op, AccountInterface $account) {
+  // Ignore verification when the user has bypass permission.
+  if ($account->hasPermission('bypass content_language_access')) {
+    return AccessResult::neutral();
+  }
+
+  // Checking if Content language detection is enabled.
+  if (in_array(LanguageInterface::TYPE_CONTENT, \Drupal::languageManager()->getLanguageTypes())) {
+    $language = \Drupal::languageManager()->getCurrentLanguage(LanguageInterface::TYPE_CONTENT);
+  }
+  else {
+    $language = \Drupal::languageManager()->getCurrentLanguage();
+  }
+
+  // Only checks for view permission on published content.
+  if (is_object($node) && $node->isPublished() && $op == 'view') {
+    /** @var \Drupal\Core\Entity\EntityRepositoryInterface $entity_repository */
+    $entity_repository = \Drupal::service('entity.repository');
+    $node_translation = $entity_repository->getTranslationFromContext($node, $language->getId());
+
+    $node_language = $node_translation->language()->getId();
+
+    // Ignoring the language is neutral and not applicable.
+    if ($node_language != Language::LANGCODE_NOT_SPECIFIED &&
+      $node_language != Language::LANGCODE_NOT_APPLICABLE
+    ) {
+      // Verifies if the current language is not the same of the content.
+      if ($node_language != $language->getId()) {
+        // Checks the configuration defined in admin page.
+        $config = Drupal::config('content_language_access.settings');
+
+        $actual_language_permission = (bool) $config->get($language->getId() . '_' . $node_language);
+        if (!$actual_language_permission) {
+
+          $route = \Drupal::routeMatch()->getRouteName();
+          // Be neutral while translating content.
+          if ($route == 'entity.node.content_translation_add') {
+            return AccessResult::neutral();
+          }
+
+          // Be neutral if access bypass is enabled.
+          $access_bypass = $config->get('access_bypass');
+          if ($access_bypass && (in_array($route, $config->get('route_list')) || php_sapi_name() == 'cli')) {
+            return AccessResult::neutral();
+          }
+
+          return AccessResult::forbidden();
+        }
+      }
+    }
+  }
+
+  return AccessResult::neutral();
+}
+
+/**
+ * Implements hook_help().
+ */
+function content_language_access_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the content_language_access module.
+    case 'help.page.content_language_access':
+      return '<p>' . t('Content Language Access Module restricts the access of only contents with language (except neutral language) that are equal of the actual Drupal language being accessed or others that were previous configured in the <a href=":content_language_access">admin page</a>.', [':content_language_access' => Url::fromRoute('content_language_access.admin_form')->toString()]) . '</p>';
+
+    // Help for admin page for the content_language_access module.
+    case 'content_language_access.admin_form':
+      return '<p>' . t('This page provides an interface for configuring more languages that can be accessed from a Drupal language.') . '</p>' .
+    '<p>' . t('Language of the content is detected based on the settings defined on <a href=":language_detection">Language detection and selection page</a>.', [':language_detection' => Url::fromRoute('language.negotiation')->toString()]) . '</p>';
+  }
+}

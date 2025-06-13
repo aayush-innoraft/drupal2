@@ -1,0 +1,3 @@
+services:
+  content_language_access.config_manager:
+    class: Drupal\content_language_access\ContentLanguageAccessConfigManager

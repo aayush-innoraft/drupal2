@@ -1,0 +1,13 @@
+content_language_access.settings:
+  type: config_object
+  label: 'General settings for Content Language Access'
+  mapping:
+    access_bypass:
+      type: boolean
+      label: 'Bypass language access validation'
+    route_list:
+      type: sequence
+      label: 'Routes to be bypassed'
+      sequence:
+        type: string
+        label: 'Route Id'

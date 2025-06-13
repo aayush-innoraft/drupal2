@@ -16,9 +16,13 @@
     ],
     "require": {
         "composer/installers": "^2.3",
+        "drupal/content_language_access": "^2.0",
         "drupal/core-composer-scaffold": "^11.1",
         "drupal/core-project-message": "^11.1",
         "drupal/core-recommended": "^11.1",
+        "drupal/gin": "^3.0",
+        "drupal/paragraphs": "^1.19",
+        "drupal/search_api": "^1.38",
         "drush/drush": "^13.6"
     },
     "conflict": {

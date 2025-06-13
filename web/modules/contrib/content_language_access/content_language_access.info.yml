@@ -1,0 +1,15 @@
+name: Content Language Access
+description: Provides access checking of the current language of the site against the language of the content.
+core_version_requirement: ^9.1 || ^10 || ^11
+package: Access control
+dependencies:
+  - drupal:language
+  - drupal:node
+type: module
+
+configure: content_language_access.admin_form
+
+# Information added by Drupal.org packaging script on 2025-05-13
+version: '2.0.1'
+project: 'content_language_access'
+datestamp: 1747105142
